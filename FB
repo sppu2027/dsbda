@@ -1,22 +1,39 @@
 import pandas as pd
 
-# 🔥 LIFE SAVER: 'sep' lagana mat bhoolna!
-df = pd.read_csv("dataset_Facebook.csv", sep=";")
+# 1. Load the dataset (Semicolon separated)
+df = pd.read_csv('dataset_Facebook.csv', sep=';')
 
-# a. Subsets banana (Exact column names from your file)
-subset1 = df[['Type', 'Category', 'like', 'share']].head(50)
-subset2 = df[['Type', 'Post Month', 'Total Interactions']].head(50)
+print("Original Data Shape:", df.shape)
 
-# b. Merge Data ('Type' common hai)
-merged_df = pd.merge(subset1, subset2, on='Type')
+# a. Create Data Subsets (Subsetting based on 'Type' of post)
+photo_subset = df[df['Type'] == 'Photo']
+video_subset = df[df['Type'] == 'Video']
+print("\n--- Subsets Created ---")
+print(f"Photos subset shape: {photo_subset.shape}")
 
-# c. Sort Data
-sorted_df = subset1.sort_values(by=['like', 'share'], ascending=False)
+# b. Merge Data 
+# (Creating dummy IDs to demonstrate merging since real data is single table)
+subset1 = df[['Type', 'Category', 'Post Month']].iloc[:50]
+subset2 = df[['Type', 'like', 'share']].iloc[:50]
+# Merging on index to show the operation
+merged_data = pd.merge(subset1, subset2, left_index=True, right_index=True)
+print("\n--- Merged Data Head ---")
+print(merged_data.head(3))
+
+# c. Sort Data (Sorting by most likes)
+sorted_data = df.sort_values(by='like', ascending=False)
+print("\n--- Data Sorted by Likes (Top 3) ---")
+print(sorted_data[['Type', 'like']].head(3))
 
 # d. Transposing Data
-transposed_df = subset1.transpose()
+transposed_data = df.head(5).transpose() # Transposing only first 5 rows for clean output
+print("\n--- Transposed Data ---")
+print(transposed_data)
 
-# e. Shape and reshape (Melt)
-melted_df = pd.melt(subset1, id_vars=['Type'], value_vars=['like', 'share'])
+# e. Shape and Reshape Data
+print("\n--- Shape of original data ---:", df.shape)
 
+# Reshaping using melt
+melted_df = pd.melt(df, id_vars=['Type', 'Category'], value_vars=['like', 'share', 'comment'])
+print("\n--- Reshaped Data (Melted) ---")
 print(melted_df.head())
