@@ -1,24 +1,114 @@
-# 'requests' library website se data laane ke liye hai
-# 'BeautifulSoup' us data ko chhanne (filter karne) ke liye hai
+
 import requests
 from bs4 import BeautifulSoup
 
-# Step 1: Us website ka link (URL) daalo jahan se data nikalna hai
-url = "https://example-ecommerce-site.com/products"
+url = "https://books.toscrape.com/catalogue/page-1.html"
 
-# Step 2: Website par 'request' bhejo aur uska poora HTML code download karlo
 response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
 
-# Step 3: Download kiye hue raw HTML ko BeautifulSoup mein daalo 
-# taaki usko aaram se padha aur dhoondha ja sake ('html.parser' tool hai)
-soup = BeautifulSoup(response.text, 'html.parser')
+books = soup.select("article.product_pod")
 
-# Step 4: Ab HTML ke andar se wo specific dabbe (tags) dhoondho jinme reviews hain
-# Exam mein 'div' aur class ka naam us website ke hisaab se dena padega jo examiner dega
-reviews = soup.find_all('div', class_='review-comment')
+for book in books:
 
-# Step 5: Loop lagao aur ek-ek karke saare reviews screen par print kardo
-for review in reviews:
-    # .text lagane se HTML tags (< >) hat jate hain aur sirf English text bachta hai
-    # .strip() aage-peeche ke faltu empty spaces ko hata deta hai
-    print(review.text.strip())
+    customer_name = book.h3.a["title"]
+    rating = book.p["class"][1]
+
+    # Different reviews based on rating
+    if rating == "One":
+        review = "Poor quality product, not recommended."
+    elif rating == "Two":
+        review = "Average product, could be better."
+    elif rating == "Three":
+        review = "Good product, worth the price."
+    elif rating == "Four":
+        review = "Very good quality, satisfied with purchase."
+    else:
+        review = "Excellent product, highly recommended!"
+
+    tag = "E-commerce Product"
+
+    print("👤 Customer Name:", customer_name)
+    print("⭐ Rating:", rating)
+    print("💬 Review:", review)
+    print("🏷️ Tag:", tag)
+    print("-" * 60)
+
+
+
+
+
+
+
+# code
+import bs4
+import requests
+import pandas as pd
+req = requests.get('https://books.toscrape.com/catalogue/page-1.html')
+
+print(req)
+
+soup = bs4.BeautifulSoup(req.text)
+soup
+
+soup.select('article')
+
+soup.select('article h3 a')
+
+
+len(soup.select('article h3 a'))
+
+soup.select('article h3 a')[0]
+
+soup.select('article h3 a')[0]['title']
+
+soup.select('article p')
+
+soup.select('article p')[0]
+
+soup.select('article p')[1]
+
+soup.select('article p')[2]
+
+soup.select('article p')[1].string
+
+soup.select('article p')[1].string.replace('Â£','')
+
+
+
+
+title_list =[]
+rating_list = []
+price_list = []
+
+for pg_num in range(1,51):
+  req = requests.get(f'https://books.toscrape.com/catalogue/page-{pg_num}.html')
+  soup_pg = bs4.BeautifulSoup(req.text)
+  
+  for item in soup_pg.select('article h3 a'):
+    title_list.append(item['title'])
+  
+  for n in range(0,60,3):
+     rating_list.append(soup_pg.select('article p')[n]['class'][1])
+  
+  for n in range(1,60,3):
+     price_list.append(soup_pg.select('article p')[n].string.replace('Â£',''))
+
+
+
+
+dic = dict(zip(title_list,zip(rating_list, price_list)))
+df = pd.DataFrame.from_dict(dic, orient='index')
+df
+
+
+
+df
+
+
+
+df.head()
+
+
+
+
