@@ -1,0 +1,22 @@
+import pandas as pd
+
+# 🔥 LIFE SAVER: 'sep' lagana mat bhoolna!
+df = pd.read_csv("dataset_Facebook.csv", sep=";")
+
+# a. Subsets banana (Exact column names from your file)
+subset1 = df[['Type', 'Category', 'like', 'share']].head(50)
+subset2 = df[['Type', 'Post Month', 'Total Interactions']].head(50)
+
+# b. Merge Data ('Type' common hai)
+merged_df = pd.merge(subset1, subset2, on='Type')
+
+# c. Sort Data
+sorted_df = subset1.sort_values(by=['like', 'share'], ascending=False)
+
+# d. Transposing Data
+transposed_df = subset1.transpose()
+
+# e. Shape and reshape (Melt)
+melted_df = pd.melt(subset1, id_vars=['Type'], value_vars=['like', 'share'])
+
+print(melted_df.head())
