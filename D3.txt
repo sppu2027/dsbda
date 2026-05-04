@@ -1,0 +1,77 @@
+-- STEP 1: Create Database
+CREATE DATABASE flight;
+USE flight;
+
+-- STEP 2: Create Table
+CREATE TABLE flights(
+    fId INT,
+    source STRING,
+    destination STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- STEP 3: Alter Table (Add Column)
+ALTER TABLE flights ADD COLUMNS (delay FLOAT);
+
+-- STEP 4: Rename Table
+ALTER TABLE flights RENAME TO air_flights;
+
+-- STEP 5: Create External Table
+CREATE EXTERNAL TABLE flight_ext(
+    id INT,
+    name STRING,
+    sal FLOAT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- STEP 6: Create Main Flight Table
+CREATE TABLE flight(
+    fid INT,
+    year INT,
+    source STRING,
+    delay FLOAT,
+    destination STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- STEP 7: Load Data
+LOAD DATA LOCAL INPATH '/home/anurag/data.txt'
+INTO TABLE flight;
+
+-- STEP 8: Insert Values
+INSERT INTO flight VALUES (105,2006,'pusad',10.4,'us');
+
+-- STEP 9: Alter Table (Add New Field)
+ALTER TABLE flight ADD COLUMNS (company STRING);
+
+-- STEP 10: Create Second Table Data
+INSERT INTO air_flights VALUES (101,'pune','uk',10.1);
+
+-- STEP 11: Perform JOIN
+SELECT a.fid, a.delay, b.source, b.destination, a.company
+FROM flight a
+JOIN air_flights b
+ON (a.fid = b.fid);
+
+-- STEP 12: Create Index
+CREATE INDEX flight_index
+ON TABLE flight(fid)
+AS 'org.apache.hadoop.hive.ql.index.compact.CompactIndexHandler'
+WITH DEFERRED REBUILD;
+
+-- STEP 13: Rebuild Index
+ALTER INDEX flight_index ON flight REBUILD;
+
+-- STEP 14: Show Index
+SHOW INDEXES ON flight;
+
+-- STEP 15: Average Delay (2008)
+SELECT AVG(delay) AS avg_dep_delay
+FROM flight
+WHERE year = 2008;

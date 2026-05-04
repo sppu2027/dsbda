@@ -1,0 +1,67 @@
+# Import required library
+import pandas as pd
+
+# Load dataset
+df = pd.read_csv("dataset_Facebook.csv", delimiter=";")
+
+# Display dataset
+print(df)
+
+# -------------------------------
+# Create Subsets
+# -------------------------------
+
+subset1 = df[['Type', 'Category', 'Post Month']]
+print(subset1.head())
+
+subset2 = df[['Type', 'Category', 'comment']]
+print(subset2.head())
+
+# -------------------------------
+# Merge Data
+# -------------------------------
+
+merged = pd.concat([subset1, subset2], axis=1)
+
+print(merged)
+print(merged.head())
+
+# -------------------------------
+# Sorting
+# -------------------------------
+
+sorted_value = merged.sort_values(by=['comment'], ascending=False)
+
+print(sorted_value)
+print(sorted_value.head())
+
+# -------------------------------
+# Transpose
+# -------------------------------
+
+transposed = merged.transpose()
+
+print(transposed.head())
+
+# Alternative transpose
+print(merged.T)
+
+# -------------------------------
+# Shape of Dataset
+# -------------------------------
+
+print(df.shape)
+
+# -------------------------------
+# Reshaping using NumPy
+# -------------------------------
+
+import numpy as np
+
+arr = np.array(df[['Category', 'Post Month']].head(6))
+reshaped = arr.reshape(3, 4)
+
+print(reshaped)
+
+# Final shape check
+print(df.shape)

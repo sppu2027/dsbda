@@ -1,0 +1,237 @@
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.preprocessing import StandardScaler
+
+# ==========================================================
+# b. DATA INTEGRATION
+# ==========================================================
+df_air = pd.read_csv('AirQuality.csv', sep=';', decimal=',')
+print("Dataset Loaded")
+
+# ==========================================================
+# a. DATA CLEANING
+# ==========================================================
+df_air = df_air.dropna(how='all', axis=1)
+df_air = df_air.dropna(how='all', axis=0)
+
+df_air.replace(-200, np.nan, inplace=True)
+df_air.fillna(df_air.median(numeric_only=True), inplace=True)
+
+print("Data Cleaning Done")
+
+# ==========================================================
+# c. DATA TRANSFORMATION
+# ==========================================================
+df_air = df_air.select_dtypes(include=[np.number])
+
+print("Data Transformation Done")
+
+# ==========================================================
+# d. ERROR CORRECTING
+# ==========================================================
+df_air = df_air[df_air['AH'] > 0]
+
+Q1 = df_air.quantile(0.25)
+Q3 = df_air.quantile(0.75)
+IQR = Q3 - Q1
+
+df_air = df_air[~((df_air < (Q1 - 1.5 * IQR)) | 
+                  (df_air > (Q3 + 1.5 * IQR))).any(axis=1)]
+
+print("Error Correction Done")
+
+# ==========================================================
+# VISUALIZATION
+# ==========================================================
+
+# 1. Histogram (Distribution of AH)
+sns.histplot(df_air['AH'], kde=True)
+plt.title("Distribution of Absolute Humidity (AH)")
+plt.show()
+
+# 2. Boxplot (Outlier detection)
+sns.boxplot(x=df_air['AH'])
+plt.title("Outliers in AH")
+plt.show()
+
+# 3. Scatter Plot (Temperature vs AH)
+sns.scatterplot(x=df_air['T'], y=df_air['AH'])
+plt.title("Temperature vs Absolute Humidity")
+plt.show()
+
+# 4. Heatmap (Correlation)
+sns.heatmap(df_air.corr(), annot=True, cmap='coolwarm')
+plt.title("Correlation Heatmap")
+plt.show()
+
+# ==========================================================
+# SCALING
+# ==========================================================
+scaler = StandardScaler()
+df_air_scaled = pd.DataFrame(scaler.fit_transform(df_air), columns=df_air.columns)
+
+# ==========================================================
+# e. DATA MODEL BUILDING
+# ==========================================================
+target = 'AH'
+
+X = df_air_scaled.drop(target, axis=1)
+y = df_air_scaled[target]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+model = RandomForestRegressor()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("R2 Score:", r2_score(y_test, y_pred))
+print("MAE:", mean_absolute_error(y_test, y_pred))
+print("MSE:", mean_squared_error(y_test, y_pred))
+
+# 5. Actual vs Predicted (Model Performance)
+sns.scatterplot(x=y_test, y=y_pred, alpha=0.4)
+plt.plot([y_test.min(), y_test.max()],
+         [y_test.min(), y_test.max()],
+         'r--')
+plt.xlabel("Actual Values")
+plt.ylabel("Predicted Values")
+plt.title("Actual vs Predicted")
+plt.show()
+
+print("Air Quality Model Completed")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==========================================================
+# IMPORT LIBRARIES
+# ==========================================================
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.preprocessing import StandardScaler
+
+# ==========================================================
+# b. DATA INTEGRATION
+# ==========================================================
+df_heart = pd.read_csv('heart.csv')
+print("Dataset Loaded")
+
+# ==========================================================
+# a. DATA CLEANING
+# ==========================================================
+df_heart.drop_duplicates(inplace=True)
+df_heart.fillna(df_heart.median(numeric_only=True), inplace=True)
+
+print("Data Cleaning Done")
+
+# ==========================================================
+# c. DATA TRANSFORMATION
+# ==========================================================
+X = df_heart.drop('target', axis=1)
+y = df_heart['target']
+
+print("Data Transformation Done")
+
+# ==========================================================
+# d. ERROR CORRECTING
+# ==========================================================
+Q1 = X.quantile(0.25)
+Q3 = X.quantile(0.75)
+IQR = Q3 - Q1
+
+X = X[~((X < (Q1 - 1.5 * IQR)) | 
+        (X > (Q3 + 1.5 * IQR))).any(axis=1)]
+
+y = y.loc[X.index]
+
+print("Error Correction Done")
+
+# ==========================================================
+# VISUALIZATION
+# ==========================================================
+
+# 1. Histogram (Age distribution)
+sns.histplot(df_heart['age'], kde=True)
+plt.title("Age Distribution")
+plt.show()
+
+# 2. Count Plot (Target distribution)
+sns.countplot(x=df_heart['target'])
+plt.title("Heart Disease Count")
+plt.show()
+
+# 3. Boxplot (Cholesterol distribution)
+sns.boxplot(x=df_heart['chol'])
+plt.title("Cholesterol Distribution")
+plt.show()
+
+# 4. Scatter Plot (Age vs Cholesterol)
+sns.scatterplot(x=df_heart['age'], y=df_heart['chol'])
+plt.title("Age vs Cholesterol")
+plt.show()
+
+# 5. Heatmap (Correlation)
+sns.heatmap(df_heart.corr(), annot=True, cmap='coolwarm')
+plt.title("Correlation Heatmap")
+plt.show()
+
+
+# ==========================================================
+# SCALING
+# ==========================================================
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# ==========================================================
+# e. DATA MODEL BUILDING
+# ==========================================================
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42
+)
+
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
+
+print("Heart Disease Model Completed")

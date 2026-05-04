@@ -1,0 +1,177 @@
+# Go to home directory
+cd ~
+
+# Create working directory
+mkdir maxlogin_exam
+cd maxlogin_exam
+
+# Create input file
+nano log.txt
+
+# (Paste inside nano)
+# user1 10
+# user2 20
+# user1 15
+# user3 5
+# user2 25
+
+# Create Java file
+nano MaxLogin.java
+
+# Compile Java program
+javac -classpath `hadoop classpath` -d . MaxLogin.java
+
+# Verify class files
+ls
+
+# Create JAR file
+jar -cvf maxlogin.jar MaxLogin*.class
+
+# Create HDFS input directory
+hdfs dfs -mkdir -p /input
+
+# Remove old file if exists
+hdfs dfs -rm /input/log.txt
+
+# Upload input file to HDFS
+hdfs dfs -put log.txt /input
+
+# Remove old output directory (VERY IMPORTANT)
+hdfs dfs -rm -r /output
+
+# Run MapReduce job
+hadoop jar maxlogin.jar MaxLogin /input /output
+
+# View output
+hdfs dfs -cat /output/part-r-00000
+
+
+//Mam Code
+#code
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+public class Process {
+
+	  public static class IPMapper
+	       extends Mapper<Object, Text, Text, IntWritable>{
+
+	    private final static IntWritable one = new IntWritable(1);
+	    private Text ip = new Text();
+
+	    public void map(Object key, Text value, Context context 
+	    		) throws IOException, InterruptedException {
+	      // Assuming the IP address is the first token in each line
+	      StringTokenizer itr = new StringTokenizer(value.toString());
+	      if (itr.hasMoreTokens()) {
+	    	  ip.set(itr.nextToken());
+	          context.write(ip, one);
+	        }
+	      }
+	    }
+
+	    public static class IntSumReducer
+	         extends Reducer<Text,IntWritable,Text,IntWritable> {
+	      private IntWritable result = new IntWritable();
+
+	      public void reduce(Text key, Iterable<IntWritable> values,
+	    		  Context context 
+	    		  ) throws IOException, InterruptedException {
+	        int sum = 0;
+	        for (IntWritable val : values) {
+	            sum += val.get();
+	          }
+	          result.set(sum);
+	          context.write(key, result);
+	        }
+	      }
+
+	      public static void main(String[] args) throws Exception {
+	        Configuration conf = new Configuration();
+	        Job job = Job.getInstance(conf, "IP address count");
+	        job.setJarByClass(Process.class);
+	        job.setMapperClass(IPMapper.class);
+	        job.setCombinerClass(IntSumReducer.class);
+	        job.setReducerClass(IntSumReducer.class);
+	        job.setOutputKeyClass(Text.class);
+	        job.setOutputValueClass(IntWritable.class);
+	        FileInputFormat.addInputPath(job, new Path(args[0]));
+	        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+	        System.exit(job.waitForCompletion(true) ? 0 : 1);
+	      }
+	    }
+
+
+
+
+
+
+//General for my input
+#code
+
+import java.io.IOException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class MaxLogin {
+
+    public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
+
+        public void map(LongWritable key, Text value, Context context)
+                throws IOException, InterruptedException {
+
+            String[] parts = value.toString().split(" ");
+            String user = parts[0];
+            int time = Integer.parseInt(parts[1]);
+
+            context.write(new Text(user), new IntWritable(time));
+        }
+    }
+
+    public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+        public void reduce(Text key, Iterable<IntWritable> values, Context context)
+                throws IOException, InterruptedException {
+
+            int sum = 0;
+            for (IntWritable val : values) {
+                sum += val.get();
+            }
+
+            context.write(key, new IntWritable(sum));
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Max Login Time");
+
+        job.setJarByClass(MaxLogin.class);
+        job.setMapperClass(Map.class);
+        job.setReducerClass(Reduce.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+	      
