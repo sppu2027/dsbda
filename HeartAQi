@@ -1,0 +1,66 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# ==========================================
+# PART 1: DATA CLEANING (AirQuality Dataset)
+# ==========================================
+aq_df = pd.read_csv('AirQuality.csv', sep=';')
+
+# a. Data Cleaning (Drop empty trailing columns and rows with all NaNs)
+aq_df = aq_df.dropna(how='all', axis=1) # Drop fully empty columns
+aq_df = aq_df.dropna(how='all', axis=0) # Drop fully empty rows
+# Replace -200 (which represents missing values in this specific dataset) with NaN, then fill with mean
+aq_df.replace(-200, np.nan, inplace=True)
+aq_df.fillna(aq_df.mean(numeric_only=True), inplace=True)
+
+# b. Data Integration (Adding a dummy column for demonstration)
+aq_df['City'] = 'Pune'
+
+# c. Data Transformation (Standardizing a column)
+# Formula used: (X - Mean) / Standard Deviation
+aq_df['T_Standardized'] = (aq_df['T'] - aq_df['T'].mean()) / aq_df['T'].std()
+
+# d. Error Correcting (Capping abnormal temperatures)
+aq_df.loc[aq_df['T'] > 50, 'T'] = 50 
+print("AirQuality cleaned shape:", aq_df.shape)
+
+
+# ==========================================
+# PART 2: MODEL BUILDING & VIZ (Heart Dataset)
+# ==========================================
+heart_df = pd.read_csv('heart.csv')
+
+# e. Data model building (Predicting heart disease 'target' or similar column)
+# Assuming typical heart.csv columns. Replace 'target' with actual label if different.
+if 'target' in heart_df.columns:
+    X = heart_df.drop('target', axis=1)
+    y = heart_df['target']
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = LogisticRegression(max_iter=1000)
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
+    print("\nHeart Disease Model Accuracy:", accuracy_score(y_test, predictions))
+
+# Assignment 5: Visualization
+plt.figure(figsize=(12, 5))
+
+# Plot 1: Histogram of Age using Matplotlib
+plt.subplot(1, 2, 1)
+plt.hist(heart_df['age'], bins=15, color='skyblue', edgecolor='black')
+plt.title('Age Distribution (Matplotlib)')
+plt.xlabel('Age')
+plt.ylabel('Count')
+
+# Plot 2: Correlation Heatmap using Seaborn
+plt.subplot(1, 2, 2)
+sns.heatmap(heart_df.corr(), annot=False, cmap='coolwarm')
+plt.title('Feature Correlation (Seaborn)')
+
+plt.tight_layout()
+plt.show()
