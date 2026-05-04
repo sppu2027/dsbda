@@ -1,0 +1,16 @@
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+df = pd.read_csv("heart.csv")
+
+# 1. Data Cleaning
+df.fillna(df.mean(), inplace=True)
+
+# 2. Model Building (Target predict karna hai. Input mein age, BP, aur cholesterol le rahe hain)
+X = df[['age', 'trestbps', 'chol']] # Inputs
+y = df['target']                    # Output 
+
+model = LinearRegression()
+model.fit(X, y)
+predictions = model.predict(X)
+print("Heart Disease Predictions:", predictions[:5])
