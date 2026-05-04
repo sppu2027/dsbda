@@ -1,0 +1,24 @@
+# 'requests' library website se data laane ke liye hai
+# 'BeautifulSoup' us data ko chhanne (filter karne) ke liye hai
+import requests
+from bs4 import BeautifulSoup
+
+# Step 1: Us website ka link (URL) daalo jahan se data nikalna hai
+url = "https://example-ecommerce-site.com/products"
+
+# Step 2: Website par 'request' bhejo aur uska poora HTML code download karlo
+response = requests.get(url)
+
+# Step 3: Download kiye hue raw HTML ko BeautifulSoup mein daalo 
+# taaki usko aaram se padha aur dhoondha ja sake ('html.parser' tool hai)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Step 4: Ab HTML ke andar se wo specific dabbe (tags) dhoondho jinme reviews hain
+# Exam mein 'div' aur class ka naam us website ke hisaab se dena padega jo examiner dega
+reviews = soup.find_all('div', class_='review-comment')
+
+# Step 5: Loop lagao aur ek-ek karke saare reviews screen par print kardo
+for review in reviews:
+    # .text lagane se HTML tags (< >) hat jate hain aur sirf English text bachta hai
+    # .strip() aage-peeche ke faltu empty spaces ko hata deta hai
+    print(review.text.strip())
