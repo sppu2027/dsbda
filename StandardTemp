@@ -1,0 +1,52 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+
+# ==========================================
+# 1. TERI SETTINGS
+# ==========================================
+FILE_NAME = "tera_dataset.csv"  # Yahan apni file ka naam daal
+SEPARATOR = ","                 # Facebook/AirQuality pe ";" varna ","
+TARGET_COLUMN = "target_col"    # Jo predict karna hai uska naam
+
+# ==========================================
+# 2. DATA LOAD
+# ==========================================
+df = pd.read_csv(FILE_NAME, sep=SEPARATOR)
+
+# ==========================================
+# 3. DATA CLEANING & ERROR CORRECTING
+# ==========================================
+df.dropna(how='all', axis=1, inplace=True) # Faltu columns udaye
+df.replace(-200, np.nan, inplace=True)     # Galat value ko khali kiya
+df.fillna(df.mean(numeric_only=True), inplace=True) # Khali ko average se bhara
+
+# ==========================================
+# 4. DATA TRANSFORMATION (🪄 BINA LOOP KA JADOO)
+# ==========================================
+# Ye ek line saare text columns ko apne aap numbers (0/1) mein badal degi!
+df = pd.get_dummies(df, drop_first=True, dtype=int)
+
+df.fillna(0, inplace=True) # Safe side ke liye agar koi text blank reh gaya ho
+
+# ==========================================
+# 5. DATA MODEL BUILDING
+# ==========================================
+X = df.drop(columns=[TARGET_COLUMN])
+y = df[TARGET_COLUMN]
+
+model = LinearRegression()
+model.fit(X, y)
+predictions = model.predict(X)
+print("\nBina Loop Ke Model Ready! Pehli 5 predictions:")
+print(predictions[:5])
+
+# ==========================================
+# 6. VISUALIZATION
+# ==========================================
+plt.figure(figsize=(10, 6))
+sns.heatmap(df.corr(), annot=False, cmap='coolwarm')
+plt.title(f"Correlation for {FILE_NAME}")
+plt.show()
